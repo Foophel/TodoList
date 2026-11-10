@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TodoList.ViewModels"
+             xmlns:models="clr-namespace:TodoList.Models"
+             x:Class="TodoList.MainPage"
+             x:DataType="vm:MainViewModel"
+             BackgroundColor="White">
+
+    <!-- наведения на кнопки -->
+    <ContentPage.Resources>
+        <!-- стили для иконок при анведении -->
+        <Style TargetType="Border" x:Key="HoverBorder">
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="Stroke" Value="LightGray" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 6" />
+            <Setter Property="VisualStateManager.VisualStateGroups">
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="Transparent" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor" Value="#EEEEEE" />
+                                <Setter Property="Stroke" Value="Gray" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto, *" Padding="16">
+
+        <!-- Поле ввода и кнопка добавления -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" ColumnSpacing="8">
+            <Entry x:Name="TaskEntry" 
+                   Text="{Binding NewTaskTitle}" 
+                   Placeholder="Заголовок задачи" 
+                   PlaceholderColor="Gray" 
+                   TextColor="Black" 
+                   FontFamily="Caveat" 
+                   FontSize="22"
+                   Completed="OnEntryCompleted" 
+                   ReturnType="Done" />
+
+            <!-- наведение на кнопку добавления -->
+            <Button x:Name="AddButton"
+                    Grid.Column="1" 
+                    Text="+" 
+                    IsEnabled="{Binding IsAddButtonEnabled}"
+                    Clicked="OnAddButtonClicked"
+                    FontSize="24" 
+                    WidthRequest="50">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="BackgroundColor" Value="#E0E0E0" />
+                        <Setter Property="TextColor" Value="Black" />
+                        <Setter Property="CornerRadius" Value="8" />
+                        <Setter Property="VisualStateManager.VisualStateGroups">
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="#E0E0E0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="#D0D0D0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="#F5F5F5" />
+                                            <Setter Property="TextColor" Value="#A0A0A0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+
+        <!-- список задач -->
+        <ListView Grid.Row="1" ItemsSource="{Binding Tasks}" Margin="0,10,0,0" 
+                  SeparatorVisibility="None" BackgroundColor="White" HasUnevenRows="True">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="models:TodoItem">
+                    <ViewCell>
+                        <Border Stroke="Gray" StrokeThickness="1.5" StrokeShape="RoundRectangle 10" 
+                                Margin="0, 5" Padding="10" BackgroundColor="Transparent">
+
+                            <!-- зеленое при выполнении -->
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsCompleted}" Value="True">
+                                    <Setter Property="Stroke" Value="Green" />
+                                </DataTrigger>
+                            </Border.Triggers>
+
+                            <!-- 3 колонки галочка (0) текст (1) крестик (2) -->
+                            <Grid x:Name="TaskGrid" ColumnDefinitions="Auto, *, Auto" BackgroundColor="Transparent">
+
+                                <!-- дабл клик -->
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnTaskDoubleTapped" NumberOfTapsRequired="2" />
+                                </Grid.GestureRecognizers>
+
+                                <!-- иконка выполнения  -->
+                                <Border Grid.Column="0" 
+                                        Style="{StaticResource HoverBorder}" 
+                                        WidthRequest="30" HeightRequest="30" 
+                                        VerticalOptions="Center" Margin="0,0,10,0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnCheckBoxTapped" />
+                                    </Border.GestureRecognizers>
+
+                                    <!-- показываем иконкув зависимости от выполнения -->
+                                    <Label FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Black">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="False">
+                                                <Setter Property="Text" Value="☐" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
+                                                <Setter Property="Text" Value="✓" />
+                                                <Setter Property="TextColor" Value="Green" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </Border>
+
+                                <!-- текст задачи -->
+                                <Label Grid.Column="1" Text="{Binding Title}" 
+                                       VerticalOptions="Center" Margin="0,0,10,0" 
+                                       TextColor="Black" FontFamily="Caveat" FontSize="24">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
+                                            <Setter Property="TextDecorations" Value="Strikethrough" />
+                                            <Setter Property="TextColor" Value="Gray" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <!-- иконка удаления -->
+                                <Border Grid.Column="2" 
+                                        Style="{StaticResource HoverBorder}" 
+                                        WidthRequest="30" HeightRequest="30" 
+                                        VerticalOptions="Center" HorizontalOptions="End">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDeleteTapped" />
+                                    </Border.GestureRecognizers>
+
+                                    <Label Text="✗" FontSize="16" 
+                                           HorizontalOptions="Center" VerticalOptions="Center" 
+                                           TextColor="Black" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </ViewCell>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</ContentPage>
